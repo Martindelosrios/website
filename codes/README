@@ -1,0 +1,150 @@
+          The MeSsI (Merging Systems Identification) Algortihm
+
+Developed by Martín de los Rios, Mariano Dominguez, Dante Páz & Manuel Merchán.
+
+If you use this algorithm please cite:  de los Rios et al. 2016 (1509.02524) 
+
+If you find a bug, please dont hesitate in contact us at: martindelosrios13@gmail.com
+
+1 Introduction
+
+  The MeSsI Algorithm is a software that performs an automatic 
+classiffication between merging and relaxed clusters.
+This method was calibrated using mock catalogues constructed from 
+the millenium simulation, and perform the classiffication using 
+some machine learning techniques, namely random forest for 
+classiffication and mixture of gaussians for the substructure 
+identification, for more details read de los Rios et al. 2016 (1509.02524).
+
+2 Installation
+
+  This software was developed completly using R-languaje (https://cran.r-project.org/) and uses a lot of packages developed by other users.
+  You will need to install R and all the necessary packages for a correctly use of MeSsI.
+
+  * For the R installation, you can follow the instructions in "https://cran.r-project.org" 
+  * For the packages installation you can use the install.packages() R-function. The packages that you will need are:
+
+   -nortest
+   -cosmoFns
+   -mclust
+   -e1071 
+   -randomForest
+   -beepr
+   -foreach (only for parallel computation)
+   -doParallel (only for parallel computation)
+   -doSNOW (only for parallel computation)
+
+   With the following script in an R-session you can install all the neccesary packages at once:
+
+   install.packages(c('nortest','cosmoFns','mclust','e1071','randomForest','beepr','foreach','doParallel','doSNOW'))
+   
+3 Basic usage
+ 
+  All the configuration is contained in the messi.config.R file, you will have to modify this file for your usage.
+  In this file you will find the following options:
+
+  * input.file.name: This is the name of the file where the galaxies
+    information is stored, the default is 'prueba.dat' and it must 
+    have the same structure as 'prueba.dat', that is to say, 6 tab 
+    seppareted columns named 'ra', 'dec', 'z', 'mag', 'color' 
+    and 'id', where 'ra', 'dec' and 'z' ar the galaxies positions,
+    'mag' are the R-band magnitudes (or equivalent), 'color' are
+    the G-R colors and 'id' is a number that indicate to which 
+    clusters belong each galaxy. 
+  
+  * name_trainset_cum: This is the name of the trainset file for 
+    the clusters. The default is 'trainset_cum.dat'. If you want
+    to change the trainset for the clusters you must preserved the
+    same structured as 'trainset_cum.dat', i.e the column names
+    and the tab seppareted values. You can generate a file with
+    this structure changing the messi_train.R configuration. 
+    See section 4 for more details
+
+  * name_trainset_gal: This is the name of the trainset file for 
+    the galaxies. The default is 'trainset_gal.dat'. If you want
+    to change the trainset for the galaxies you must preserved the
+    same structured as 'trainset_gal.dat', i.e the column names
+    and the tab seppareted values. You can generate a file with
+    this structure changing the messi_train.R configuration. 
+    See section 4 for more details 
+  
+  * folder: This is the name of the folder where all the information 
+    will be stored, the default is 'prueba_messi'.
+
+  * name.gal: This is the name of the output file where the galaxies 
+    properties will be stored. The default is 'estadisticos_galaxias.dat'.
+
+  * name.groups: This is the name of the output file where the 
+    clusters properties will be stored. The default is 'estadisticos_grupos.dat'.
+
+  * rank.name: This is the name of the output file where the 
+    merging-classification properties will be stored.The default 
+    is 'ranking.dat'
+
+  * relaxed.name: This is the name of the output file where the 
+    relaxed-classification properties will be stored. The default 
+    is 'ranking_relaxed.dat'.
+
+  * nrank: This is the number of random forest instances that you want to do
+
+  * cum: If TRUE, the program will estimate all the clusters properties.
+  * gal: If TRUE, the program will estimate all the galaxies properties.
+  * rank: If TRUE, the program will performed a classification between
+          merging or not-merging clusters.
+  * relaxed: If TRUE, the program will performed a classification 
+             between relaxed or not-relaxed clusters.
+  * ncluster: Is the number of clusters you will use for the computation.
+              if you set it to 0, the computation will not be parallel. 
+
+ Once you have modify your messi.config.R file you can run the messi
+ algorithm from a terminal with the following script
+
+ Rscript messi.R -f messi.config.R
+
+4 Building a new trainset
+
+ If you want to build a new trainset, you can do it, modifying the 
+ messi_train.R file and then runnning from terminal the following script
+
+ Rscript messi.R -t messi_train.R
+
+ The messi_train.R have the following configuration parameters:
+
+ * input.file.name: This is the name of the file where the galaxies 
+   information is stored. It must have the same structure as 
+   'prueba_train_cum.dat', that is to say, 6 tab seppareted columns 
+   named 'ra', 'dec', 'z', 'mag', 'color','id' and 'class', 
+   where 'ra', 'dec' and 'z' ar the galaxies positions, 'mag' are the
+   R-band magnitudes (or equivalent), 'color' are the G-R colors, 'id'
+   is a number that indicate to which clusters belong each galaxy and
+   'class' is a flag for the galaxy classification. 1 correspond to
+   galaxies that belong to the substructures that are in the merger
+   proccess and 0 are galaxies that do not belong to the substructures
+   that are in the merging process.   
+ 
+ * id.file.name: This is the name of the file where the cluster 
+   classification is stored. It must have the same structure as 
+   'id_cum.dat', that is to say 3 tab seppareted columns names
+   'id', 'id_mer', 'id_rel', where 'id' is the identification number
+   of the cluster, 'id_mer' is a flag for the cluster classification,
+   1 are merging clusters and 0 are not merging clusters, and 'id_rel'
+   is another flag for the cluster classification, 1 is for relaxed
+   clusters and 0 is for not relaxed clusters. 
+   NOTE: A cluster can not have id_mer=1 and id_rel=1 but it can have
+   id_mer=0 and id_rel=0, i.e. a cluster can not be a relaxed and a
+   merging cluster at the same time, but it can be a cluster that
+   is not a merging nor a relaxed clusters, because we consider
+   merging cluster those that have a recent major merger and relaxed
+   cluster those that have not have a recent major merger in the last
+   Gyr, so there are clusters that are between this to classes.
+
+ * name.groups: This is the name of the output file where the 
+   clusters properties will be stored. The default is 
+   'trainset_cum.dat'
+
+ * name.gal: This is the name of the output file where the galaxies
+   properties will be stored. The default is 'trainset_cum.dat'
+
+ * folder: This is the name of the folder where all the information 
+   will be stored. The default is the working directory.
+
